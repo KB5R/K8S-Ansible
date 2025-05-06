@@ -168,3 +168,41 @@
 
     - name: Run install_docker.sh
       shell: bash install_docker.sh
+
+    - name: Dowanload cri-dockerd
+      shell: wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.17/cri-dockerd_0.3.17.3-0.ubuntu-jammy_amd64.deb
+      ignore_errors: yes
+
+    - name: Устанавливаем cri-dockerd
+      apt:
+         deb: /root/cri-dockerd_0.3.17.3-0.ubuntu-jammy_amd64.deb
+
+    - name: Del .deb package
+      shell: rm -r cri-dockerd_0.3.17.3-0.ubuntu-jammy_amd64.deb
+
+    - name: mkdir cri-docker.service.d
+      shell: mkdir -p /etc/systemd/system/cri-docker.service.d/
+
+    - name: Конфиг cri-docker pause image
+      copy:
+        dest: /etc/systemd/system/cri-docker.service.d/10-pause.conf
+        content: |
+          # File: /etc/systemd/system/cri-docker.service.d/10-pause.conf
+          [Service]
+          ExecStart=
+          ExecStart=/usr/bin/cri-dockerd --container-runtime-endpoint fd:// --pod-infra-container-image "registry.k8s.io/pause:3.10"
+        mode: '0644'
+
+
+    - name: daemon-reload
+      shell: systemctl daemon-reload
+
+    - name: restart cri-docker.service
+      shell: systemctl restart cri-docker.service
+
+    - name: Создание файла /etc/crictl.yaml
+      copy:
+        dest: /etc/crictl.yaml
+        content: |
+          runtime-endpoint: unix:///var/run/cri-dockerd.sock
+        mode: '0644'
