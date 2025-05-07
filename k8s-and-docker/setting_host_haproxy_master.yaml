@@ -70,7 +70,7 @@
       command: sysctl -p
 
 
-   - name: Off /etc/apt/apt.conf.d/20auto-upgrades
+    - name: Off /etc/apt/apt.conf.d/20auto-upgrades
       copy:
         dest: /etc/apt/apt.conf.d/20auto-upgrades
         content: |
@@ -85,16 +85,3 @@
       ignore_errors: yes
 
 
-    - name: IP routing
-      copy:
-        dest: /etc/sysctl.d/10-k8s.conf
-        content: |
-          net.bridge.bridge-nf-call-ip6tables = 1
-          net.bridge.bridge-nf-call-iptables = 1
-          net.ipv4.ip_forward = 1
-        owner: root
-        group: root
-        mode: '0644'
-
-    - name: Apply sysctl
-      command: sysctl -f /etc/sysctl.d/10-k8s.conf
